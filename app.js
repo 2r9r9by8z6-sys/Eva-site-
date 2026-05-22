@@ -1,110 +1,80 @@
-/* ===================================================================
-   TIRASMURFS – JavaScript
-   =================================================================== */
+/* === TIRASMURFS === */
 
-// ── Nav scroll effect ──────────────────────────────────────────────────
+// Nav scroll
 const header = document.getElementById('header');
-
 window.addEventListener('scroll', () => {
-  if (window.scrollY > 60) {
-    header.classList.add('scrolled');
-  } else {
-    header.classList.remove('scrolled');
-  }
+  header.classList.toggle('scrolled', window.scrollY > 80);
 }, { passive: true });
 
-// ── Mobile burger ──────────────────────────────────────────────────────
+// Burger
 const burger = document.getElementById('navBurger');
 const mobileMenu = document.getElementById('mobileMenu');
-
 burger.addEventListener('click', () => {
   burger.classList.toggle('open');
   mobileMenu.classList.toggle('open');
 });
-
-// Close mobile menu on link click
-mobileMenu.querySelectorAll('a').forEach(link => {
-  link.addEventListener('click', () => {
+mobileMenu.querySelectorAll('a').forEach(a => {
+  a.addEventListener('click', () => {
     burger.classList.remove('open');
     mobileMenu.classList.remove('open');
   });
 });
 
-// ── Scroll reveal ──────────────────────────────────────────────────────
-const revealObserver = new IntersectionObserver((entries) => {
-  entries.forEach((entry, i) => {
-    if (entry.isIntersecting) {
-      // Staggered delay for sibling elements
-      const siblings = entry.target.parentElement.querySelectorAll('.reveal');
-      const idx = Array.from(siblings).indexOf(entry.target);
-      const delay = Math.min(idx * 80, 400);
-
-      setTimeout(() => {
-        entry.target.classList.add('visible');
-      }, delay);
-
-      revealObserver.unobserve(entry.target);
-    }
+// Scroll reveal
+const obs = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (!e.isIntersecting) return;
+    const siblings = Array.from(e.target.parentElement.querySelectorAll('.reveal'));
+    const i = siblings.indexOf(e.target);
+    setTimeout(() => e.target.classList.add('visible'), Math.min(i * 70, 350));
+    obs.unobserve(e.target);
   });
-}, {
-  threshold: 0.12,
-  rootMargin: '0px 0px -40px 0px'
-});
+}, { threshold: 0.1, rootMargin: '0px 0px -30px 0px' });
+document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
 
-document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
-
-// ── Tiramisu card flip (click on mobile, hover on desktop) ─────────────
-const isTouchDevice = () => window.matchMedia('(hover: none)').matches;
-
-document.querySelectorAll('.tiramisu-card').forEach(card => {
-  card.addEventListener('click', () => {
-    if (isTouchDevice()) {
-      card.classList.toggle('flipped');
-    }
+// Hero reveals immédiat
+setTimeout(() => {
+  document.querySelectorAll('.hero .reveal').forEach((el, i) => {
+    setTimeout(() => el.classList.add('visible'), i * 110 + 100);
   });
-});
+}, 50);
 
-// ── Menu tabs ──────────────────────────────────────────────────────────
-const tabBtns = document.querySelectorAll('.tab-btn');
-const tabPanels = document.querySelectorAll('.tab-panel');
-
-tabBtns.forEach(btn => {
+// Tabs menu
+document.querySelectorAll('.tab').forEach(btn => {
   btn.addEventListener('click', () => {
-    const target = btn.dataset.tab;
-
-    tabBtns.forEach(b => b.classList.remove('active'));
-    tabPanels.forEach(p => p.classList.remove('active'));
-
+    document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
     btn.classList.add('active');
-    document.getElementById(`tab-${target}`).classList.add('active');
+    document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
   });
 });
 
-// ── Active nav highlight on scroll ────────────────────────────────────
+// Flip cartes tiramisu (touch)
+const isTouch = () => window.matchMedia('(hover: none)').matches;
+document.querySelectorAll('.tc-card').forEach(card => {
+  card.addEventListener('click', () => {
+    if (isTouch()) card.classList.toggle('flipped');
+  });
+});
+
+// Nav active highlight
 const sections = document.querySelectorAll('section[id], footer[id]');
 const navLinks = document.querySelectorAll('.nav-links a');
-
-const sectionObserver = new IntersectionObserver((entries) => {
-  entries.forEach(entry => {
-    if (entry.isIntersecting) {
-      const id = entry.target.id;
-      navLinks.forEach(link => {
-        link.style.color = link.getAttribute('href') === `#${id}`
-          ? 'var(--gold)'
-          : '';
+new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      navLinks.forEach(a => {
+        a.style.color = a.getAttribute('href') === '#' + e.target.id ? 'var(--gold)' : '';
       });
     }
   });
-}, { threshold: 0.4 });
-
-sections.forEach(s => sectionObserver.observe(s));
-
-// ── Smooth hero entry ─────────────────────────────────────────────────
-window.addEventListener('DOMContentLoaded', () => {
-  // Force first visible elements in hero
-  setTimeout(() => {
-    document.querySelectorAll('.hero .reveal').forEach((el, i) => {
-      setTimeout(() => el.classList.add('visible'), i * 120);
+}, { threshold: 0.35 }).observe.bind(sections.forEach(s =>
+  new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      navLinks.forEach(a => {
+        a.style.color = a.getAttribute('href') === '#' + e.target.id ? 'var(--gold)' : '';
+      });
     });
-  }, 150);
-});
+  }, { threshold: 0.35 }).observe(s)
+));
